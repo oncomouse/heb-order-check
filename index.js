@@ -30,45 +30,53 @@
       }
       return Object.prototype.hasOwnProperty.call(dataStore, id);
     };
-    var id = document.querySelector('.order-details__order-number').innerText.replace('Order #', '');
-    var currentOrder = extractList();
-    var orderHistory = JSON.parse(localStorage.getItem(KEY));
-    var previousOrder = previousListExists(orderHistory, id) ? orderHistory[id] : JSON.parse(prompt(PROMPT, '[]'));
-    var additions = _.differenceWith(currentOrder, previousOrder, _.isEqual);
-    var deletions = _.differenceWith(previousOrder, currentOrder, _.isEqual);
-    var outputDiv = document.createElement('DIV');
-    outputDiv.style.position = 'absolute';
-    outputDiv.style.padding = '0.5%';
-    outputDiv.style.left = '15px';
-    outputDiv.style.right = '15px';
-    outputDiv.style.top = '15px';
-    outputDiv.style.bottom = '15px';
-    outputDiv.style.backgroundColor = 'rgba(0,0,0,0.7)';
-    outputDiv.style.color = 'white';
-    outputDiv.style.zIndex = 1000000;
-    outputDiv.style.position = 'fixed';
-    outputDiv.style.overflow = 'scroll';
-    var listify = function (xs) {
-      return xs.map(function (x) { return '<li><strong>' + x.quantity + '</strong> of <strong>' + x.name + '</strong></li>'; });
-    };
-    outputDiv.innerHTML = '<p>Here are the additions:</p><ul>' + listify(additions).join('') + '</ul><p>Here are the deletions:</p><ul>' + listify(deletions).join('') + '</ul><p><button id="save">Save This Order?</button></p><p><button id="close">Close</button></p><p><button id="reset">Reset Stored Data</button></p>';
-    document.getElementsByTagName('body')[0].appendChild(outputDiv);
-    document.querySelector('#save').addEventListener('click', function () {
-      copyToClipboard(JSON.stringify(currentOrder));
-      var newObject = {};
-      newObject[id] = currentOrder;
-      localStorage.setItem(
-        KEY,
-        JSON.stringify(orderHistory === null ? newObject : Object.assign({}, orderHistory, newObject))
-      );
-      alert('The new order state has been saved on this browser and copied to the clipboard, if you wish to save a local copy.');
-    });
-    document.querySelector('#reset').addEventListener('click', function () {
-      localStorage.setItem(KEY, null);
-    });
-    document.querySelector('#close').addEventListener('click', function () {
-      outputDiv.parentElement.removeChild(outputDiv);
-    });
+    var id = null;
+    try {
+      id = document.querySelector('.order-details__order-number').innerText.replace('Order #', '');
+    } catch (err) {
+      alert('No HEB Order Detected!');
+    }
+
+    if (id !== null) {
+      var currentOrder = extractList();
+      var orderHistory = JSON.parse(localStorage.getItem(KEY));
+      var previousOrder = previousListExists(orderHistory, id) ? orderHistory[id] : JSON.parse(prompt(PROMPT, '[]'));
+      var additions = _.differenceWith(currentOrder, previousOrder, _.isEqual);
+      var deletions = _.differenceWith(previousOrder, currentOrder, _.isEqual);
+      var outputDiv = document.createElement('DIV');
+      outputDiv.style.position = 'absolute';
+      outputDiv.style.padding = '0.5%';
+      outputDiv.style.left = '15px';
+      outputDiv.style.right = '15px';
+      outputDiv.style.top = '15px';
+      outputDiv.style.bottom = '15px';
+      outputDiv.style.backgroundColor = 'rgba(0,0,0,0.7)';
+      outputDiv.style.color = 'white';
+      outputDiv.style.zIndex = 1000000;
+      outputDiv.style.position = 'fixed';
+      outputDiv.style.overflow = 'scroll';
+      var listify = function (xs) {
+        return xs.length === 0 ? ['<li><em>Nothing Here</em></li>'] : xs.map(function (x) { return '<li><strong>' + x.quantity + '</strong> of <strong>' + x.name + '</strong></li>'; });
+      };
+      outputDiv.innerHTML = '<p>Here are the additions:</p><ul>' + listify(additions).join('') + '</ul><p>Here are the deletions:</p><ul>' + listify(deletions).join('') + '</ul><p><button id="save">Save This Order?</button></p><p><button id="close">Close</button></p><p><button id="reset">Reset Stored Data</button></p>';
+      document.getElementsByTagName('body')[0].appendChild(outputDiv);
+      document.querySelector('#save').addEventListener('click', function () {
+        copyToClipboard(JSON.stringify(currentOrder));
+        var newObject = {};
+        newObject[id] = currentOrder;
+        localStorage.setItem(
+          KEY,
+          JSON.stringify(orderHistory === null ? newObject : Object.assign({}, orderHistory, newObject))
+        );
+        alert('The new order state has been saved on this browser and copied to the clipboard, if you wish to save a local copy.');
+      });
+      document.querySelector('#reset').addEventListener('click', function () {
+        localStorage.setItem(KEY, null);
+      });
+      document.querySelector('#close').addEventListener('click', function () {
+        outputDiv.parentElement.removeChild(outputDiv);
+      });
+    }
   }, false);
   document.body.appendChild(newScript);
 })();
